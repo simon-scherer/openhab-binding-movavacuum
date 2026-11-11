@@ -1,0 +1,66 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  OPENHAB_VERSION: "5.2.4"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout binding
+        uses: actions/checkout@v4
+        with:
+          path: binding
+
+      - name: Checkout openHAB add-ons ${{ env.OPENHAB_VERSION }}
+        uses: actions/checkout@v4
+        with:
+          repository: openhab/openhab-addons
+          ref: ${{ env.OPENHAB_VERSION }}
+          path: openhab-addons
+          fetch-depth: 1
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Add binding to the add-ons reactor
+        run: |
+          cp -r binding openhab-addons/bundles/org.openhab.binding.movavacuum
+          rm -rf openhab-addons/bundles/org.openhab.binding.movavacuum/.git openhab-addons/bundles/org.openhab.binding.movavacuum/.github
+          sed -i "s#<version>[0-9.]*\(-SNAPSHOT\)\?</version>#<version>${OPENHAB_VERSION}</version>#" openhab-addons/bundles/org.openhab.binding.movavacuum/pom.xml
+          sed -i 's#<module>org.openhab.binding.modbus</module>#<module>org.openhab.binding.modbus</module>\n    <module>org.openhab.binding.movavacuum</module>#' openhab-addons/bundles/pom.xml
+
+      - name: Format sources (Spotless)
+        working-directory: openhab-addons
+        run: mvn -B -q spotless:apply -pl :org.openhab.binding.movavacuum
+
+      - name: Build and test
+        working-directory: openhab-addons
+        run: mvn -B clean install -pl :org.openhab.binding.movavacuum -am -DskipChecks=false -Dspotless.check.skip=true
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: org.openhab.binding.movavacuum
+          path: openhab-addons/bundles/org.openhab.binding.movavacuum/target/org.openhab.binding.movavacuum-*.jar
+
+      - name: Create release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: openhab-addons/bundles/org.openhab.binding.movavacuum/target/org.openhab.binding.movavacuum-*.jar
+          generate_release_notes: true

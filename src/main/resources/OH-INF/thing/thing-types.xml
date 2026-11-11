@@ -1,0 +1,682 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bindingId="movavacuum" xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<bridge-type id="account">
+		<label>Mova/Dreame Account</label>
+		<description>Cloud account connection to the DreameHome/Mova cloud. After login, the device ID (did) is written to the openHAB log.</description>
+		<config-description>
+			<parameter name="username" type="text" required="true">
+				<label>Username</label>
+				<description>E-mail address of your Mova/Dreamehome account.</description>
+			</parameter>
+			<parameter name="password" type="text" required="true">
+				<context>password</context>
+				<label>Password</label>
+				<description>Password of your Mova/Dreamehome account.</description>
+			</parameter>
+			<parameter name="accountType" type="text" required="false">
+				<label>Account Type</label>
+				<description>Brand of the app the account was created with (Mova app = mova, Dreamehome app = dreame).</description>
+				<default>mova</default>
+				<options>
+					<option value="mova">Mova</option>
+					<option value="dreame">Dreame</option>
+					<option value="trouver">Trouver</option>
+				</options>
+			</parameter>
+			<parameter name="country" type="text" required="false">
+				<label>Region</label>
+				<description>Cloud region of the account. Mova: eu, cn, us, sg, kr. Dreame: eu, cn, us, ru, sg, kr, by. Trouver: eu, us, ru, sg. If the login fails or the device list stays empty, try another region.</description>
+				<default>eu</default>
+				<options>
+					<option value="eu">eu (Europe)</option>
+					<option value="us">us</option>
+					<option value="cn">cn</option>
+					<option value="sg">sg</option>
+					<option value="ru">ru</option>
+					<option value="kr">kr</option>
+					<option value="by">by</option>
+				</options>
+			</parameter>
+			<parameter name="pollingInterval" type="integer" required="false" unit="s">
+				<label>Polling Interval</label>
+				<description>How often (in seconds) the state of the vacuum is polled.</description>
+				<default>20</default>
+			</parameter>
+		</config-description>
+	</bridge-type>
+
+	<thing-type id="vacuum">
+		<supported-bridge-type-refs>
+			<bridge-type-ref id="account" />
+		</supported-bridge-type-refs>
+		<label>Mova/Dreame Robot Vacuum</label>
+		<description>A single Mova/Dreame robot vacuum (e.g. Mova V50 Ultra), connected via the account bridge.</description>
+		<channels>
+			<channel id="state" typeId="state-channel" />
+			<channel id="status" typeId="status-channel" />
+			<channel id="battery" typeId="battery-channel" />
+			<channel id="charging" typeId="charging-channel" />
+			<channel id="error" typeId="error-channel" />
+			<channel id="command" typeId="command-channel" />
+		</channels>
+		<config-description>
+			<parameter name="did" type="text" required="true">
+				<label>Device ID (did)</label>
+				<description>The device ID (did) of the vacuum. It is written to the openHAB log as soon as the account bridge is online (line "Mova/Dreame device found").</description>
+			</parameter>
+			<parameter name="settingsInterval" type="integer" required="false" unit="s">
+				<label>Settings Polling Interval</label>
+				<description>How often (in seconds, at least 10) the settings are polled so that changes made in the app show up in openHAB quickly.</description>
+				<default>20</default>
+			</parameter>
+			<parameter name="mapKey" type="text" required="false">
+				<label>Map Key (IV)</label>
+				<description>Optional: 16 character initialization vector for map decryption. Leave empty if the model is known.</description>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="mapRotation" type="integer" required="false">
+				<label>Rotate Map</label>
+				<description>Clockwise rotation of the map image: -1 = automatic (value stored in the map), otherwise 0, 90, 180 or 270 degrees.</description>
+				<default>-1</default>
+				<options>
+					<option value="-1">Automatic</option>
+					<option value="0">0 degrees</option>
+					<option value="90">90 degrees</option>
+					<option value="180">180 degrees</option>
+					<option value="270">270 degrees</option>
+				</options>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="mapFlip" type="boolean" required="false">
+				<label>Flip Map</label>
+				<description>Flips the map image vertically (before rotating). Default: on, so the map looks like in the app.</description>
+				<default>true</default>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="showHiddenRooms" type="boolean" required="false">
+				<label>Show Hidden Rooms</label>
+				<description>Off (default): rooms hidden in the app are not drawn, like in the app. On: they are drawn in grey.</description>
+				<default>false</default>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="mapSize" type="integer" required="false" min="200" max="1600">
+				<label>Map Image Size</label>
+				<description>Target edge length of the map image in pixels (default 600).</description>
+				<default>600</default>
+				<advanced>true</advanced>
+			</parameter>
+			<parameter name="mapLabels" type="text" required="false">
+				<label>Map Labels</label>
+				<description>What is written into each room of the map image: room name (as in the app), number or both.</description>
+				<default>name</default>
+				<options>
+					<option value="name">Room name</option>
+					<option value="number">Number</option>
+					<option value="both">Number and name</option>
+				</options>
+				<advanced>true</advanced>
+			</parameter>
+		</config-description>
+	</thing-type>
+
+	<channel-type id="state-channel">
+		<item-type>String</item-type>
+		<label>State</label>
+		<description>Overall state of the vacuum (sweeping, idle, paused, error, returning, charging, mopping, ...).</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="status-channel">
+		<item-type>Number</item-type>
+		<label>Status Code</label>
+		<description>Raw status property value (siid 4 / piid 1) for diagnostics.</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="battery-channel">
+		<item-type>Number:Dimensionless</item-type>
+		<label>Battery Level</label>
+		<state readOnly="true" pattern="%d %%" />
+	</channel-type>
+
+	<channel-type id="charging-channel">
+		<item-type>Switch</item-type>
+		<label>Charging</label>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="error-channel">
+		<item-type>Number</item-type>
+		<label>Error Code</label>
+		<description>0 = no error. Values as in DreameVacuumErrorCode of the Tasshack reference implementation.</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="command-channel">
+		<item-type>String</item-type>
+		<label>Command</label>
+		<description>Send: start, pause, stop, dock, locate. start also resumes a paused mop washing or return to the station.</description>
+		<command>
+			<options>
+				<option value="start">Start</option>
+				<option value="pause">Pause</option>
+				<option value="stop">Stop</option>
+				<option value="dock">Dock</option>
+				<option value="locate">Locate</option>
+			</options>
+		</command>
+	</channel-type>
+
+	<channel-type id="suction-channel">
+		<item-type>String</item-type>
+		<label>Suction Level</label>
+		<description>Suction level: quiet, standard, strong, turbo.</description>
+		<state>
+			<options>
+				<option value="quiet">Quiet</option>
+				<option value="standard">Standard</option>
+				<option value="strong">Strong</option>
+				<option value="turbo">Turbo</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="volume-channel">
+		<item-type>Number:Dimensionless</item-type>
+		<label>Volume</label>
+		<description>Voice volume in percent (0 to 100).</description>
+		<state min="0" max="100" step="5" pattern="%d %%" />
+	</channel-type>
+
+	<channel-type id="dnd-channel">
+		<item-type>Switch</item-type>
+		<label>Do Not Disturb</label>
+		<description>Do not disturb is active (read only).</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="cleaning-mode-raw-channel">
+		<item-type>Number</item-type>
+		<label>Cleaning Mode (raw)</label>
+		<description>Raw packed value (siid 4 / piid 23) for diagnostics.</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="water-raw-channel">
+		<item-type>Number</item-type>
+		<label>Water Level (raw)</label>
+		<description>Raw value (siid 4 / piid 5) for diagnostics.</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="cleaning-time-channel">
+		<item-type>Number:Time</item-type>
+		<label>Cleaning Time</label>
+		<description>Duration of the current/last cleaning.</description>
+		<state readOnly="true" pattern="%d %unit%" />
+	</channel-type>
+
+	<channel-type id="cleaned-area-channel">
+		<item-type>Number:Area</item-type>
+		<label>Cleaned Area</label>
+		<description>Area of the current/last cleaning.</description>
+		<state readOnly="true" pattern="%d %unit%" />
+	</channel-type>
+
+	<channel-type id="total-cleaning-time-channel">
+		<item-type>Number:Time</item-type>
+		<label>Total Cleaning Time</label>
+		<state readOnly="true" pattern="%d %unit%" />
+	</channel-type>
+
+	<channel-type id="total-cleaned-area-channel">
+		<item-type>Number:Area</item-type>
+		<label>Total Cleaned Area</label>
+		<state readOnly="true" pattern="%d %unit%" />
+	</channel-type>
+
+	<channel-type id="cleaning-count-channel">
+		<item-type>Number</item-type>
+		<label>Cleaning Count</label>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="consumable-channel">
+		<item-type>Number:Dimensionless</item-type>
+		<label>Consumable Left</label>
+		<description>Remaining lifetime in percent (updated every few minutes).</description>
+		<state readOnly="true" pattern="%d %%" />
+	</channel-type>
+
+	<channel-type id="consumable-time-channel">
+		<item-type>Number:Time</item-type>
+		<label>Time Left</label>
+		<description>Remaining time in hours (updated every few minutes).</description>
+		<state readOnly="true" pattern="%d %unit%" />
+	</channel-type>
+
+	<channel-type id="setting-switch-channel">
+		<item-type>Switch</item-type>
+		<label>Setting (Switch)</label>
+		<description>On/off setting of the vacuum (read and write). Stays empty if the device does not support it.</description>
+	</channel-type>
+
+	<channel-type id="carpet-cleaning-channel">
+		<item-type>String</item-type>
+		<label>Carpet Cleaning</label>
+		<description>Behaviour on carpets.</description>
+		<state>
+			<options>
+				<option value="avoidance">Avoid</option>
+				<option value="adaptation">Vacuum (lift mop pads)</option>
+				<option value="remove_mop">Vacuum, remove mop pads (depending on model)</option>
+				<option value="adaptation_without_route">Vacuum without route</option>
+				<option value="vacuum_and_mop">Vacuum and mop</option>
+				<option value="cross">Cross carpets</option>
+				<option value="ignore">Ignore</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="auto-lds-channel">
+		<item-type>String</item-type>
+		<label>Auto Lift LDS</label>
+		<state>
+			<options>
+				<option value="off">Off</option>
+				<option value="security">Safe coverage</option>
+				<option value="extreme">Extreme coverage</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="mop-extend-frequency-channel">
+		<item-type>String</item-type>
+		<label>Mop Extend Frequency</label>
+		<state>
+			<options>
+				<option value="standard">Standard</option>
+				<option value="intelligent">Intelligent (AI)</option>
+				<option value="high">High</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="auto-empty-mode-channel">
+		<item-type>String</item-type>
+		<label>Auto Empty</label>
+		<state>
+			<options>
+				<option value="off">Off</option>
+				<option value="standard">Standard</option>
+				<option value="intelligent">Intelligent</option>
+				<option value="low_frequency">Low frequency</option>
+				<option value="custom_frequency">Custom frequency</option>
+				<option value="high_frequency">High frequency</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="mop-wash-level-channel">
+		<item-type>String</item-type>
+		<label>Mop Wash Level</label>
+		<state>
+			<options>
+				<option value="water_saving">Water saving</option>
+				<option value="daily">Daily</option>
+				<option value="deep">Deep</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="scraper-frequency-channel">
+		<item-type>String</item-type>
+		<label>Scraper Frequency</label>
+		<state>
+			<options>
+				<option value="off">Off</option>
+				<option value="weekly">Weekly</option>
+				<option value="daily">Daily</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="water-temperature-channel">
+		<item-type>String</item-type>
+		<label>Water Temperature</label>
+		<state>
+			<options>
+				<option value="normal">Normal</option>
+				<option value="mild">Mild</option>
+				<option value="warm">Warm</option>
+				<option value="hot">Hot</option>
+				<option value="max">Maximum</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="self-clean-frequency-channel">
+		<item-type>String</item-type>
+		<label>Self-Clean Frequency</label>
+		<state>
+			<options>
+				<option value="by_area">By area</option>
+				<option value="by_time">By time</option>
+				<option value="by_room">By room</option>
+				<option value="intelligent">Intelligent</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="mopping-type-channel">
+		<item-type>String</item-type>
+		<label>Mopping Type</label>
+		<state>
+			<options>
+				<option value="daily">Daily</option>
+				<option value="accurate">Accurate</option>
+				<option value="deep">Deep</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="low-lying-frequency-channel">
+		<item-type>String</item-type>
+		<label>Low-Lying Areas Frequency</label>
+		<state>
+			<options>
+				<option value="weekly">Low frequency</option>
+				<option value="daily">High frequency</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="drying-time-channel">
+		<item-type>String</item-type>
+		<label>Drying Time</label>
+		<description>Duration of mop drying (hours).</description>
+		<state>
+			<options>
+				<option value="1h">1 h (dry weather)</option>
+				<option value="2h">2 h (mild weather)</option>
+				<option value="3h">3 h (rainy/coastal)</option>
+				<option value="4h">4 h (cool/humid)</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="charge-limit-channel">
+		<item-type>Number</item-type>
+		<label>Charge Limit</label>
+		<description>Battery level up to which the robot charges (property 28/47, 80 to 100 percent).</description>
+		<state min="80" max="100" step="1" pattern="%d %%" />
+	</channel-type>
+
+	<channel-type id="off-peak-time-channel">
+		<item-type>String</item-type>
+		<label>Off-Peak Time</label>
+		<description>Time in format HH:mm for off-peak charging.</description>
+	</channel-type>
+
+	<channel-type id="rooms-channel">
+		<item-type>String</item-type>
+		<label>Rooms</label>
+		<description>Rooms of the map as list "number: name" (read only).</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="map-refresh-channel">
+		<item-type>Switch</item-type>
+		<label>Refresh Map</label>
+		<description>ON reloads the map from the cloud immediately; the switch then returns to OFF.</description>
+	</channel-type>
+
+	<channel-type id="clean-rooms-channel">
+		<item-type>String</item-type>
+		<label>Clean Rooms</label>
+		<description>Rooms separated by comma, number or name (e.g. 1,2 or Kitchen@times=2/suction=strong/water=3). Without options: current suction and water level, once. Option room uses the room settings stored in the app.</description>
+	</channel-type>
+
+	<channel-type id="clean-zone-channel">
+		<item-type>String</item-type>
+		<label>Clean Zones</label>
+		<description>Zones as x1,y1,x2,y2 in map units (mm), several separated by semicolon, optionally with options, e.g. -1000,-500,2000,1500@times=2/suction=strong/water=2. Without options: current suction and water level, once.</description>
+	</channel-type>
+
+	<channel-type id="cleaning-mode-channel">
+		<item-type>String</item-type>
+		<label>Cleaning Mode</label>
+		<description>Vacuum, mop, vacuum and mop, or mop after vacuum (value in 4/23, only the lowest 2 bits are changed).</description>
+		<state>
+			<options>
+				<option value="sweeping">Vacuum</option>
+				<option value="mopping">Mop</option>
+				<option value="sweeping_and_mopping">Vacuum and mop</option>
+				<option value="mopping_after_sweeping">Mop after vacuum</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="water-level-channel">
+		<item-type>Number</item-type>
+		<label>Mop Water Level</label>
+		<description>Water level when mopping (1 to 32, property 28/1).</description>
+		<state min="1" max="32" step="1" pattern="%d" />
+	</channel-type>
+
+	<channel-type id="station-status-channel">
+		<item-type>String</item-type>
+		<label>Station Status</label>
+		<description>Status of the base station as text (read only).</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="station-percent-channel">
+		<item-type>Number:Dimensionless</item-type>
+		<label>Station Percentage</label>
+		<description>Percentage value of the base station (read only).</description>
+		<state readOnly="true" pattern="%d %unit%" />
+	</channel-type>
+
+	<channel-type id="station-flag-channel">
+		<item-type>Switch</item-type>
+		<label>Station Flag</label>
+		<description>Yes/no status of the base station (read only).</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="base-command-channel">
+		<item-type>String</item-type>
+		<label>Base Station Command</label>
+		<description>Command for the base station.</description>
+		<command>
+			<options>
+				<option value="wash_mop">Wash mop</option>
+				<option value="pause_wash">Pause washing</option>
+				<option value="resume_wash">Resume washing</option>
+				<option value="dry_mop">Dry mop</option>
+				<option value="stop_dry_mop">Stop mop drying</option>
+				<option value="dry_dust_bag">Dry dust bag</option>
+				<option value="stop_dry_dust_bag">Stop dust bag drying</option>
+				<option value="drain_dirty_water">Drain dirty water</option>
+				<option value="empty_clean_tank">Empty clean water tank</option>
+				<option value="empty_dust">Empty dust bin</option>
+			</options>
+		</command>
+	</channel-type>
+
+	<channel-type id="reset-consumable-channel">
+		<item-type>String</item-type>
+		<label>Reset Consumable</label>
+		<description>Resets the counter after replacement: main_brush, side_brush, filter, sensor, wheel, scale_inhibitor, washboard.</description>
+		<command>
+			<options>
+				<option value="main_brush">Main brush</option>
+				<option value="side_brush">Side brush</option>
+				<option value="filter">Filter</option>
+				<option value="sensor">Sensors</option>
+				<option value="wheel">Wheels</option>
+				<option value="scale_inhibitor">Scale inhibitor</option>
+				<option value="washboard">Washboard cleaning</option>
+			</options>
+		</command>
+	</channel-type>
+
+	<channel-type id="cleangenius-channel">
+		<item-type>String</item-type>
+		<label>CleanGenius</label>
+		<description>AI controlled cleaning: off, routine_cleaning, deep_cleaning (only effective with mop pads attached).</description>
+		<state>
+			<options>
+				<option value="off">Off</option>
+				<option value="routine_cleaning">Routine cleaning</option>
+				<option value="deep_cleaning">Deep cleaning</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="cleangenius-mode-channel">
+		<item-type>String</item-type>
+		<label>CleanGenius Mode</label>
+		<description>CleanGenius mode: vacuum_and_mop or mop_after_vacuum.</description>
+		<state>
+			<options>
+				<option value="vacuum_and_mop">Vacuum and mop</option>
+				<option value="mop_after_vacuum">Mop after vacuum</option>
+			</options>
+		</state>
+	</channel-type>
+
+	<channel-type id="room-settings-channel">
+		<item-type>String</item-type>
+		<label>Change Room Settings</label>
+		<description>Write settings per room, e.g. "Kitchen@times=2/suction=strong/water=2/mode=sweeping_and_mopping/order=1, 9@times=1". Options: times 1-3, suction quiet/standard/strong/turbo, water 1-3, mode sweeping/mopping/sweeping_and_mopping, order = position in the cleaning sequence. Only while docked.</description>
+	</channel-type>
+
+	<channel-type id="error-text-channel">
+		<item-type>String</item-type>
+		<label>Error Text</label>
+		<description>Description of the current error code (read only).</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="last-cleaning-channel">
+		<item-type>String</item-type>
+		<label>Last Cleaning</label>
+		<description>One line about the last cleaning: start, duration, area, result (read only).</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="cleaning-history-channel">
+		<item-type>String</item-type>
+		<label>Cleaning History</label>
+		<description>The last 10 cleanings, one line per run, newest first (read only).</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="clean-spot-channel">
+		<item-type>String</item-type>
+		<label>Clean Spots</label>
+		<description>Points as x,y in map units (mm), several separated by semicolon, optionally with options, e.g. 700,-1500@times=2/suction=quiet/water=2. About 1.5 m² around the point are cleaned.</description>
+	</channel-type>
+
+	<channel-type id="room-zones-channel">
+		<item-type>String</item-type>
+		<label>Room Coordinates</label>
+		<description>One line per room: bounding rectangle (zone x1,y1,x2,y2) and a safely reachable point near the room centre in map units (mm), read only. For use with zone and spot cleaning.</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="robot-position-channel">
+		<item-type>String</item-type>
+		<label>Robot Position</label>
+		<description>Position of the robot (x,y in mm) with room, station and timestamp of the last map (read only). During cleaning and return the map is reloaded every minute.</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="go-to-channel">
+		<item-type>String</item-type>
+		<label>Go To Point</label>
+		<description>Target point as x,y in map units (mm). The robot drives there and stays (only on models with camera).</description>
+	</channel-type>
+
+	<channel-type id="remote-control-channel">
+		<item-type>String</item-type>
+		<label>Remote Control</label>
+		<description>One step: forward, backward, left, right, stop or rotation,velocity (rotation -360..360, velocity -600..600).</description>
+	</channel-type>
+
+	<channel-type id="shortcuts-channel">
+		<item-type>String</item-type>
+		<label>Shortcuts</label>
+		<description>One line per shortcut: number, name and "running" if active (read only).</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="shortcut-channel">
+		<item-type>String</item-type>
+		<label>Shortcut Command</label>
+		<description>start:number or name (without prefix the shortcut is started), rename:number=new name or delete:number.</description>
+	</channel-type>
+
+	<channel-type id="room-edit-channel">
+		<item-type>String</item-type>
+		<label>Edit Rooms</label>
+		<description>Room@option, several rooms separated by semicolon, options separated by slash: name=new name, visible=on|off, floor=none|wood|tile, mop=A|B|C. Example: Utility@name=Utility room/floor=tile. Not during cleaning.</description>
+	</channel-type>
+
+	<channel-type id="map-command-channel">
+		<item-type>String</item-type>
+		<label>Map Command</label>
+		<description>rename:new name (rename the current map) or backup (back up the current map in the cloud). Not during cleaning.</description>
+	</channel-type>
+
+	<channel-type id="room-progress-channel">
+		<item-type>String</item-type>
+		<label>Room Progress</label>
+		<description>Finished, skipped and pending rooms of the running job (read only).</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="current-room-channel">
+		<item-type>String</item-type>
+		<label>Current Room</label>
+		<description>Room the robot is in according to the last map (read only).</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="obstacles-channel">
+		<item-type>String</item-type>
+		<label>Detected Obstacles</label>
+		<description>One line per obstacle: number, type, position (mm), ignored if applicable (read only).</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="obstacle-ignore-channel">
+		<item-type>String</item-type>
+		<label>Ignore Obstacle</label>
+		<description>number=ignore or number=restore (number from the Detected Obstacles channel). Not during cleaning.</description>
+	</channel-type>
+
+	<channel-type id="room-info-channel">
+		<item-type>String</item-type>
+		<label>Room Settings</label>
+		<description>One line per room: mode, suction, water, repeats, order, last cleaning (read only).</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="map-image-channel">
+		<item-type>Image</item-type>
+		<label>Map</label>
+		<description>Rendered map as PNG in the light theme (app style, transparent background).</description>
+		<state readOnly="true" />
+	</channel-type>
+
+	<channel-type id="map-image-dark-channel">
+		<item-type>Image</item-type>
+		<label>Map (dark)</label>
+		<description>Rendered map as PNG in the dark theme. Only rendered if an item is linked.</description>
+		<state readOnly="true" />
+	</channel-type>
+</thing:thing-descriptions>
