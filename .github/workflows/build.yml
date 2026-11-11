@@ -44,10 +44,6 @@ jobs:
           sed -i "s#<version>[0-9.]*\(-SNAPSHOT\)\?</version>#<version>${OPENHAB_VERSION}</version>#" openhab-addons/bundles/org.openhab.binding.movavacuum/pom.xml
           sed -i 's#<module>org.openhab.binding.modbus</module>#<module>org.openhab.binding.modbus</module>\n    <module>org.openhab.binding.movavacuum</module>#' openhab-addons/bundles/pom.xml
 
-      - name: Format sources (Spotless)
-        working-directory: openhab-addons
-        run: mvn -B -q spotless:apply -pl :org.openhab.binding.movavacuum
-
       - name: Build and test
         working-directory: openhab-addons
         run: mvn -B clean install -pl :org.openhab.binding.movavacuum -am -DskipChecks=false -Dspotless.check.skip=true

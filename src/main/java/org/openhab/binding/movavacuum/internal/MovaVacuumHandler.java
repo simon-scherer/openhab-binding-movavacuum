@@ -1183,8 +1183,10 @@ public class MovaVacuumHandler extends BaseThingHandler {
     private String roomInfoText(List<MovaMap.Room> rooms) {
         List<MovaMap.Room> sorted = new ArrayList<>(rooms);
         sorted.sort((a, b) -> {
-            int oa = a.order != null ? a.order : Integer.MAX_VALUE;
-            int ob = b.order != null ? b.order : Integer.MAX_VALUE;
+            Integer ao = a.order;
+            Integer bo = b.order;
+            int oa = ao != null ? ao : Integer.MAX_VALUE;
+            int ob = bo != null ? bo : Integer.MAX_VALUE;
             return oa != ob ? Integer.compare(oa, ob) : Integer.compare(a.id, b.id);
         });
         java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd.MM. HH:mm");
@@ -1821,10 +1823,6 @@ public class MovaVacuumHandler extends BaseThingHandler {
         return api.setProperty(did, MovaBindingConstants.SIID_VACUUM, MovaBindingConstants.PIID_REMOTE_CONTROL, json);
     }
 
-    /** Prüft, ob ein Punkt (mm) auf einer befahrbaren Fläche der Karte liegt; true, wenn keine Karte bekannt ist. */
-    private boolean pointInMap(int xMm, int yMm) {
-        return MovaCommands.pointInMap(lastMap, xMm, yMm);
-    }
 
     /**
      * Punktreinigung (ca. 1,5 m² um den Punkt). Syntax: {@code x,y[@times=1-3/suction=quiet..turbo/water=1-3]},
@@ -2474,8 +2472,8 @@ public class MovaVacuumHandler extends BaseThingHandler {
         String lower = v.toLowerCase(Locale.ROOT);
         if (lower.startsWith("rename:")) {
             String name = v.substring(7).trim();
-            Map<String, Object> entry = new LinkedHashMap<>();
-            entry.put("name", name.isEmpty() ? null : name);
+            Map<String, @Nullable Object> entry = new LinkedHashMap<>();
+            entry.put("name", name.isEmpty() ? null : name); // empty = reset to the default name
             Map<String, Object> maps = new LinkedHashMap<>();
             maps.put(String.valueOf(map.mapId), entry);
             Map<String, Object> data = new LinkedHashMap<>();
