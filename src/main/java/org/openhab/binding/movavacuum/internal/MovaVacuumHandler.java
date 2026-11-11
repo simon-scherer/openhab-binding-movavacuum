@@ -528,13 +528,7 @@ public class MovaVacuumHandler extends BaseThingHandler {
     }
 
     private int suctionToCode(String text) {
-        return switch (text.toLowerCase()) {
-            case "quiet" -> 0;
-            case "standard" -> 1;
-            case "strong" -> 2;
-            case "turbo" -> 3;
-            default -> -1;
-        };
+        return MovaCommands.suctionToCode(text);
     }
 
     @Override
@@ -1797,27 +1791,13 @@ public class MovaVacuumHandler extends BaseThingHandler {
 
     /** Zu einem Punkt fahren und dort Bilder aufnehmen. Syntax: {@code x,y} in Karteneinheiten (mm). */
     private boolean handleGoTo(MovaCloudApi api, String value) throws MovaCloudException {
-        String[] xy = value.trim().split("[,\\s;]+");
-        if (xy.length != 2) {
-            logger.warn("Invalid target point '{}': expected x,y", value);
-            return false;
-        }
-        int x;
-        int y;
+        String json;
         try {
-            x = (int) Math.round(Double.parseDouble(xy[0]));
-            y = (int) Math.round(Double.parseDouble(xy[1]));
-        } catch (NumberFormatException e) {
-            logger.warn("Invalid coordinates in target point '{}'", value);
+            json = MovaCommands.goToJson(value, lastMap);
+        } catch (IllegalArgumentException e) {
+            logger.warn("{}", e.getMessage());
             return false;
         }
-        if (!pointInMap(x, y)) {
-            logger.warn("Target point {},{} is not on the map", x, y);
-            return false;
-        }
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("tpoint", List.of(Arrays.asList(x, y, 0, 0)));
-        String json = MovaSigner.toJson(data, false);
         List<Object> in = new ArrayList<>();
         in.add(piidValue(MovaBindingConstants.PIID_STATUS, MovaBindingConstants.STATUS_CRUISING_POINT));
         in.add(piidValue(MovaBindingConstants.PIID_CLEANING_PROPERTIES, json));
@@ -1830,65 +1810,20 @@ public class MovaVacuumHandler extends BaseThingHandler {
      * (Drehung -360..360, Geschwindigkeit -600..600).
      */
     private boolean handleRemoteControl(MovaCloudApi api, String value) throws MovaCloudException {
-        String text = value.trim().toLowerCase(Locale.ROOT);
-        int rotation;
-        int velocity;
-        switch (text) {
-            case "forward" -> {
-                rotation = 0;
-                velocity = 200;
-            }
-            case "backward" -> {
-                rotation = 0;
-                velocity = -200;
-            }
-            case "left" -> {
-                rotation = 120;
-                velocity = 0;
-            }
-            case "right" -> {
-                rotation = -120;
-                velocity = 0;
-            }
-            case "stop" -> {
-                rotation = 0;
-                velocity = 0;
-            }
-            default -> {
-                String[] parts = text.split("[,\\s;]+");
-                if (parts.length != 2) {
-                    logger.warn("Invalid remote control '{}' (allowed: forward, backward, left, right, stop or rotation,velocity)",
-                            value);
-                    return false;
-                }
-                try {
-                    rotation = Math.max(-360, Math.min(360, Integer.parseInt(parts[0])));
-                    velocity = Math.max(-600, Math.min(600, Integer.parseInt(parts[1])));
-                } catch (NumberFormatException e) {
-                    logger.warn("Invalid numbers in remote control '{}'", value);
-                    return false;
-                }
-            }
+        String json;
+        try {
+            json = MovaCommands.remoteJson(value, (int) (Math.random() * 65535));
+        } catch (IllegalArgumentException e) {
+            logger.warn("{}", e.getMessage());
+            return false;
         }
-        String json = "{\"spdv\":" + velocity + ",\"spdw\":" + rotation + ",\"audio\":\"false\",\"random\":"
-                + (int) (Math.random() * 65535) + "}";
         logger.debug("Remote control: {}", json);
         return api.setProperty(did, MovaBindingConstants.SIID_VACUUM, MovaBindingConstants.PIID_REMOTE_CONTROL, json);
     }
 
     /** Prüft, ob ein Punkt (mm) auf einer befahrbaren Fläche der Karte liegt; true, wenn keine Karte bekannt ist. */
     private boolean pointInMap(int xMm, int yMm) {
-        MovaMap.Result r = lastMap;
-        if (r == null || r.grid <= 0 || r.imgWidth <= 0 || r.image.length < r.imgWidth * r.imgHeight) {
-            return true;
-        }
-        int px = Math.floorDiv(xMm - r.left, r.grid);
-        int py = Math.floorDiv(yMm - r.top, r.grid);
-        if (px < 0 || py < 0 || px >= r.imgWidth || py >= r.imgHeight) {
-            return false;
-        }
-        int v = r.image[py * r.imgWidth + px] & 0xff;
-        return v != 0 && (v & 0x80) == 0;
+        return MovaCommands.pointInMap(lastMap, xMm, yMm);
     }
 
     /**
@@ -1896,74 +1831,13 @@ public class MovaVacuumHandler extends BaseThingHandler {
      * mehrere Punkte mit ';' getrennt. Koordinaten in Karteneinheiten (mm).
      */
     private boolean handleCleanSpot(MovaCloudApi api, String value) throws MovaCloudException {
-        List<Object> points = new ArrayList<>();
-        for (String part : value.split(";+")) {
-            String p = part.trim();
-            if (p.isEmpty()) {
-                continue;
-            }
-            String options = "";
-            int at = p.indexOf('@');
-            if (at >= 0) {
-                options = p.substring(at + 1).trim();
-                p = p.substring(0, at).trim();
-            }
-            String[] xy = p.split("[,\\s]+");
-            if (xy.length != 2) {
-                logger.warn("Invalid point '{}': expected x,y", p);
-                return false;
-            }
-            int x;
-            int y;
-            try {
-                x = (int) Math.round(Double.parseDouble(xy[0]));
-                y = (int) Math.round(Double.parseDouble(xy[1]));
-            } catch (NumberFormatException e) {
-                logger.warn("Invalid coordinates in point '{}'", p);
-                return false;
-            }
-            if (!pointInMap(x, y)) {
-                logger.warn("Point {},{} is not on the map", x, y);
-                return false;
-            }
-            int times = 1;
-            int suction = lastSuction;
-            int water = lastWater;
-            for (String opt : options.split("/")) {
-                String o = opt.trim().toLowerCase(Locale.ROOT);
-                if (o.isEmpty()) {
-                    continue;
-                }
-                int eq = o.indexOf('=');
-                String key = eq >= 0 ? o.substring(0, eq).trim() : o;
-                String val = eq >= 0 ? o.substring(eq + 1).trim() : "";
-                try {
-                    switch (key) {
-                        case "times" -> times = Math.max(1, Math.min(3, Integer.parseInt(val)));
-                        case "suction" -> {
-                            int code = suctionToCode(val);
-                            suction = code >= 0 ? code : Integer.parseInt(val);
-                        }
-                        case "water" -> water = Integer.parseInt(val);
-                        default -> {
-                            logger.warn("Unknown point option '{}' (allowed: times, suction, water)", opt);
-                            return false;
-                        }
-                    }
-                } catch (NumberFormatException e) {
-                    logger.warn("Invalid value in point option '{}'", opt);
-                    return false;
-                }
-            }
-            points.add(Arrays.asList(x, y, times, suction, water));
-        }
-        if (points.isEmpty()) {
-            logger.warn("No point given");
+        String json;
+        try {
+            json = MovaCommands.spotJson(value, lastSuction, lastWater, lastMap);
+        } catch (IllegalArgumentException e) {
+            logger.warn("{}", e.getMessage());
             return false;
         }
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("points", points);
-        String json = MovaSigner.toJson(data, false);
         List<Object> in = new ArrayList<>();
         in.add(piidValue(MovaBindingConstants.PIID_STATUS, MovaBindingConstants.STATUS_SPOT_CLEANING));
         in.add(piidValue(MovaBindingConstants.PIID_CLEANING_PROPERTIES, json));
@@ -1976,71 +1850,13 @@ public class MovaVacuumHandler extends BaseThingHandler {
      * getrennt. Koordinaten in Karteneinheiten (wie in der Karte, Millimeter).
      */
     private boolean handleCleanZone(MovaCloudApi api, String value) throws MovaCloudException {
-        List<Object> areas = new ArrayList<>();
-        for (String part : value.split(";+")) {
-            String p = part.trim();
-            if (p.isEmpty()) {
-                continue;
-            }
-            String options = "";
-            int at = p.indexOf('@');
-            if (at >= 0) {
-                options = p.substring(at + 1).trim();
-                p = p.substring(0, at).trim();
-            }
-            String[] xy = p.split("[,\\s]+");
-            if (xy.length != 4) {
-                logger.warn("Invalid zone '{}': expected x1,y1,x2,y2", p);
-                return false;
-            }
-            int[] c = new int[4];
-            try {
-                for (int i = 0; i < 4; i++) {
-                    c[i] = (int) Math.round(Double.parseDouble(xy[i]));
-                }
-            } catch (NumberFormatException e) {
-                logger.warn("Invalid coordinates in zone '{}'", p);
-                return false;
-            }
-            int times = 1;
-            int suction = lastSuction;
-            int water = lastWater;
-            for (String opt : options.split("/")) {
-                String o = opt.trim().toLowerCase(Locale.ROOT);
-                if (o.isEmpty()) {
-                    continue;
-                }
-                int eq = o.indexOf('=');
-                String key = eq >= 0 ? o.substring(0, eq).trim() : o;
-                String val = eq >= 0 ? o.substring(eq + 1).trim() : "";
-                try {
-                    switch (key) {
-                        case "times" -> times = Math.max(1, Math.min(3, Integer.parseInt(val)));
-                        case "suction" -> {
-                            int code = suctionToCode(val);
-                            suction = code >= 0 ? code : Integer.parseInt(val);
-                        }
-                        case "water" -> water = Integer.parseInt(val);
-                        default -> {
-                            logger.warn("Unknown zone option '{}' (allowed: times, suction, water)", opt);
-                            return false;
-                        }
-                    }
-                } catch (NumberFormatException e) {
-                    logger.warn("Invalid value in zone option '{}'", opt);
-                    return false;
-                }
-            }
-            areas.add(Arrays.asList(Math.min(c[0], c[2]), Math.min(c[1], c[3]), Math.max(c[0], c[2]),
-                    Math.max(c[1], c[3]), times, suction, water));
-        }
-        if (areas.isEmpty()) {
-            logger.warn("No zone given");
+        String json;
+        try {
+            json = MovaCommands.zoneJson(value, lastSuction, lastWater);
+        } catch (IllegalArgumentException e) {
+            logger.warn("{}", e.getMessage());
             return false;
         }
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("areas", areas);
-        String json = MovaSigner.toJson(data, false);
         List<Object> in = new ArrayList<>();
         in.add(piidValue(MovaBindingConstants.PIID_STATUS, MovaBindingConstants.STATUS_ZONE_CLEANING));
         in.add(piidValue(MovaBindingConstants.PIID_CLEANING_PROPERTIES, json));
@@ -2049,77 +1865,13 @@ public class MovaVacuumHandler extends BaseThingHandler {
     }
 
     private boolean handleCleanRooms(MovaCloudApi api, String value) throws MovaCloudException {
-        List<Object> selects = new ArrayList<>();
-        for (String part : value.split("[,;]+")) {
-            String p = part.trim();
-            if (p.isEmpty()) {
-                continue;
-            }
-            String options = "";
-            int at = p.indexOf('@');
-            if (at >= 0) {
-                options = p.substring(at + 1).trim();
-                p = p.substring(0, at).trim();
-            }
-            int id;
-            try {
-                id = Integer.parseInt(p);
-            } catch (NumberFormatException e) {
-                Integer byName = roomIdsByName.get(p.toLowerCase(Locale.ROOT));
-                if (byName == null) {
-                    logger.warn("Invalid room number or unknown room name '{}' in '{}'", p, value);
-                    return false;
-                }
-                id = byName;
-            }
-            int times = 1;
-            int suction = lastSuction;
-            int water = lastWater;
-            for (String opt : options.split("/")) {
-                String o = opt.trim().toLowerCase(Locale.ROOT);
-                if (o.isEmpty()) {
-                    continue;
-                }
-                if (o.equals("room")) {
-                    MovaMap.Room room = roomsById.get(id);
-                    if (room != null) {
-                        times = room.times != null ? Math.max(1, room.times) : times;
-                        suction = room.suction != null ? room.suction : suction;
-                        water = room.waterVolume != null ? room.waterVolume : water;
-                    }
-                    continue;
-                }
-                int eq = o.indexOf('=');
-                String key = eq >= 0 ? o.substring(0, eq).trim() : o;
-                String val = eq >= 0 ? o.substring(eq + 1).trim() : "";
-                try {
-                    switch (key) {
-                        case "times" -> times = Math.max(1, Math.min(3, Integer.parseInt(val)));
-                        case "suction" -> {
-                            int code = suctionToCode(val);
-                            suction = code >= 0 ? code : Integer.parseInt(val);
-                        }
-                        case "water" -> water = Integer.parseInt(val);
-                        default -> {
-                            logger.warn("Unknown room option '{}' (allowed: times, suction, water, room)", opt);
-                            return false;
-                        }
-                    }
-                } catch (NumberFormatException e) {
-                    logger.warn("Invalid value in room option '{}'", opt);
-                    return false;
-                }
-            }
-            selects.add(Arrays.asList(id, times, suction, water, 1));
-        }
-        if (selects.isEmpty()) {
-            logger.warn("No room numbers given");
+        String json;
+        try {
+            json = MovaCommands.roomsJson(value, roomIdsByName, roomsById, lastSuction, lastWater);
+        } catch (IllegalArgumentException e) {
+            logger.warn("{}", e.getMessage());
             return false;
         }
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("selects", selects);
-        String json = MovaSigner.toJson(data, false);
-
         List<Object> in = new ArrayList<>();
         in.add(piidValue(MovaBindingConstants.PIID_STATUS, MovaBindingConstants.STATUS_SEGMENT_CLEANING));
         in.add(piidValue(MovaBindingConstants.PIID_CLEANING_PROPERTIES, json));
