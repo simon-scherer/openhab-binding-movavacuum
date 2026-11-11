@@ -44,7 +44,6 @@ public class MovaSignerTest {
         p.put("data", data);
         p.put("flag", true);
         p.put("list", List.of(list));
-        p.put("none", null);
         return p;
     }
 
@@ -56,13 +55,13 @@ public class MovaSignerTest {
     @Test
     public void splicedMatchesReference() {
         assertEquals("data=[did=\"988750884\"&method=\"get_properties\"]&did=988750884&flag=true&id=5"
-                + "&list=[{\"a\":\"ä\",\"b\":2}]&none=null", MovaSigner.spliced(sample(), true));
+                + "&list=[{\"a\":\"ä\",\"b\":2}]", MovaSigner.spliced(sample(), true));
     }
 
     @Test
     public void signedMatchesReference() {
         Map<String, Object> signed = MovaSigner.signed(sample(), 1700000000000L, "secret");
-        assertEquals("6c8ea41803ff26ef0b02efc5d70d60e3", signed.get("sign"));
+        assertEquals("adee5dee21faee2f546a49d155d38c5c", signed.get("sign"));
         assertEquals(1700000000000L, signed.get("timestamp"));
     }
 

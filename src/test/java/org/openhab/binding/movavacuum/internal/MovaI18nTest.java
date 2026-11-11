@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.lang.reflect.Field;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -66,7 +67,8 @@ public class MovaI18nTest {
         Field en = MovaErrors.class.getDeclaredField("TEXTS_EN");
         de.setAccessible(true);
         en.setAccessible(true);
-        assertEquals(((Map<?, ?>) de.get(null)).keySet(), ((Map<?, ?>) en.get(null)).keySet());
+        assertEquals(((Map<?, ?>) Objects.requireNonNull(de.get(null))).keySet(),
+                ((Map<?, ?>) Objects.requireNonNull(en.get(null))).keySet());
     }
 
     @Test
@@ -74,7 +76,7 @@ public class MovaI18nTest {
         Set<String> ids = new TreeSet<>();
         Field extra = MovaVacuumHandler.class.getDeclaredField("EXTRA_CHANNELS");
         extra.setAccessible(true);
-        for (String[] row : (String[][]) extra.get(null)) {
+        for (String[] row : (String[][]) Objects.requireNonNull(extra.get(null))) {
             ids.add(row[0]);
         }
         MovaSettings.DEFS.forEach(d -> ids.add(d.channel));

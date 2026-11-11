@@ -19,6 +19,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 
@@ -99,7 +100,7 @@ public class MovaResourcesTest {
         Set<String> types = channelTypeIds(thingTypes());
         Field extra = MovaVacuumHandler.class.getDeclaredField("EXTRA_CHANNELS");
         extra.setAccessible(true);
-        for (String[] row : (String[][]) extra.get(null)) {
+        for (String[] row : (String[][]) Objects.requireNonNull(extra.get(null))) {
             assertTrue(types.contains(row[2]), "unknown channel type " + row[2] + " for " + row[0]);
         }
         MovaSettings.DEFS.forEach(d -> assertTrue(types.contains(d.channelTypeId), "unknown " + d.channelTypeId));
