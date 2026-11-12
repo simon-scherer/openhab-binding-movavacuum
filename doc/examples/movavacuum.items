@@ -1,0 +1,140 @@
+// Example items for the Mova/Dreame Vacuum Binding (all channels).
+// Replace "home" (bridge id) and "vacuum" (thing id) with your own UIDs, and remove what you do not need.
+
+String Vacuum_State "State [%s]" <vacuum> { channel="movavacuum:vacuum:home:vacuum:state" }
+Number:Dimensionless Vacuum_Battery "Battery [%d %%]" <battery> { channel="movavacuum:vacuum:home:vacuum:battery" }
+Switch Vacuum_Charging "Charging" <energy> { channel="movavacuum:vacuum:home:vacuum:charging" }
+Number Vacuum_Error "Error Code [%d]" { channel="movavacuum:vacuum:home:vacuum:error" }
+Number Vacuum_Status "Status Code [%d]" { channel="movavacuum:vacuum:home:vacuum:status" }
+String Vacuum_Command "Command" { channel="movavacuum:vacuum:home:vacuum:command" }
+String Vacuum_CleanRooms "Clean Rooms" { channel="movavacuum:vacuum:home:vacuum:clean-rooms" }
+String Vacuum_Suction "Suction Level [%s]" { channel="movavacuum:vacuum:home:vacuum:suction" }
+Number:Dimensionless Vacuum_Volume "Volume [%d %%]" { channel="movavacuum:vacuum:home:vacuum:volume" }
+Switch Vacuum_Dnd "Do Not Disturb" { channel="movavacuum:vacuum:home:vacuum:dnd" }
+Number Vacuum_CleaningModeRaw "Cleaning Mode (raw) [%d]" { channel="movavacuum:vacuum:home:vacuum:cleaning-mode-raw" }
+Number Vacuum_WaterRaw "Water Level (raw) [%d]" { channel="movavacuum:vacuum:home:vacuum:water-raw" }
+Number:Time Vacuum_CleaningTime "Cleaning Time [%d %unit%]" { channel="movavacuum:vacuum:home:vacuum:cleaning-time", unit="min" }
+Number:Area Vacuum_CleanedArea "Cleaned Area [%d %unit%]" { channel="movavacuum:vacuum:home:vacuum:cleaned-area" }
+Number:Time Vacuum_TotalCleaningTime "Total Cleaning Time [%d %unit%]" { channel="movavacuum:vacuum:home:vacuum:total-cleaning-time", unit="min" }
+Number:Area Vacuum_TotalCleanedArea "Total Cleaned Area [%d %unit%]" { channel="movavacuum:vacuum:home:vacuum:total-cleaned-area" }
+Number Vacuum_CleaningCount "Cleaning Count [%d]" { channel="movavacuum:vacuum:home:vacuum:cleaning-count" }
+Number:Dimensionless Vacuum_MainBrushLeft "Main Brush Left [%d %%]" { channel="movavacuum:vacuum:home:vacuum:main-brush-left" }
+Number:Dimensionless Vacuum_SideBrushLeft "Side Brush Left [%d %%]" { channel="movavacuum:vacuum:home:vacuum:side-brush-left" }
+Number:Dimensionless Vacuum_FilterLeft "Filter Left [%d %%]" { channel="movavacuum:vacuum:home:vacuum:filter-left" }
+Number:Dimensionless Vacuum_SensorLeft "Sensors Left [%d %%]" { channel="movavacuum:vacuum:home:vacuum:sensor-left" }
+Number:Dimensionless Vacuum_WheelLeft "Wheels Left [%d %%]" { channel="movavacuum:vacuum:home:vacuum:wheel-left" }
+Number:Time Vacuum_WheelTimeLeft "Wheels Time Left [%d %unit%]" { channel="movavacuum:vacuum:home:vacuum:wheel-time-left", unit="h" }
+Number:Dimensionless Vacuum_ScaleInhibitorLeft "Scale Inhibitor Left [%d %%]" { channel="movavacuum:vacuum:home:vacuum:scale-inhibitor-left" }
+Number:Time Vacuum_ScaleInhibitorTimeLeft "Scale Inhibitor Time Left [%d %unit%]" { channel="movavacuum:vacuum:home:vacuum:scale-inhibitor-time-left", unit="h" }
+String Vacuum_CarpetCleaning "Carpet Cleaning [%s]" { channel="movavacuum:vacuum:home:vacuum:carpet-cleaning" }
+String Vacuum_AutoLds "Auto Lift LDS [%s]" { channel="movavacuum:vacuum:home:vacuum:auto-lds" }
+String Vacuum_LowLyingFrequency "Low-Lying Areas Frequency [%s]" { channel="movavacuum:vacuum:home:vacuum:low-lying-frequency" }
+Switch Vacuum_CarpetBoost "Carpet Boost" { channel="movavacuum:vacuum:home:vacuum:carpet-boost" }
+Switch Vacuum_CarpetsFirst "Clean Carpets First" { channel="movavacuum:vacuum:home:vacuum:carpets-first" }
+Switch Vacuum_SideBrushCarpetRotate "Side Brush Rotates on Carpet" { channel="movavacuum:vacuum:home:vacuum:side-brush-carpet-rotate" }
+Switch Vacuum_IntensiveCarpetCleaning "Intensive Carpet Cleaning" { channel="movavacuum:vacuum:home:vacuum:intensive-carpet-cleaning" }
+Switch Vacuum_CollisionAvoidance "Collision Avoidance Mode" { channel="movavacuum:vacuum:home:vacuum:collision-avoidance" }
+Switch Vacuum_AutoMountMop "Auto Detach/Attach Mop Pads" { channel="movavacuum:vacuum:home:vacuum:auto-mount-mop" }
+Switch Vacuum_FloorDirectionCleaning "Clean Along Floor Direction" { channel="movavacuum:vacuum:home:vacuum:floor-direction-cleaning" }
+Switch Vacuum_DynamicObstacleCleaning "Dynamic Cleaning Around Obstacles" { channel="movavacuum:vacuum:home:vacuum:dynamic-obstacle-cleaning" }
+Switch Vacuum_IntelligentStainCleaning "Smart Stain Cleaning" { channel="movavacuum:vacuum:home:vacuum:intelligent-stain-cleaning" }
+Switch Vacuum_LargeParticles "Large Particle Detection" { channel="movavacuum:vacuum:home:vacuum:large-particles" }
+Switch Vacuum_ObstacleAvoidance "Smart Obstacle Avoidance" { channel="movavacuum:vacuum:home:vacuum:obstacle-avoidance" }
+String Vacuum_Rooms "Rooms [%s]" { channel="movavacuum:vacuum:home:vacuum:rooms" }
+Switch Vacuum_MapRefresh "Refresh Map" { channel="movavacuum:vacuum:home:vacuum:map-refresh" }
+Switch Vacuum_SideReach "Side Brush Extend (Side Reach)" { channel="movavacuum:vacuum:home:vacuum:side-reach" }
+Switch Vacuum_MopExtend "Mop Pad Extend (Mop Extend)" { channel="movavacuum:vacuum:home:vacuum:mop-extend" }
+String Vacuum_MopExtendFrequency "Mop Extend Frequency [%s]" { channel="movavacuum:vacuum:home:vacuum:mop-extend-frequency" }
+Switch Vacuum_GapCleaningExtension "Gap Cleaning Extension" { channel="movavacuum:vacuum:home:vacuum:gap-cleaning-extension" }
+Switch Vacuum_MoppingUnderFurniture "Intensive Cleaning Around Furniture Legs" { channel="movavacuum:vacuum:home:vacuum:mopping-under-furniture" }
+Switch Vacuum_ObstacleCrossing "Synchronized Obstacle Crossing" { channel="movavacuum:vacuum:home:vacuum:obstacle-crossing" }
+Switch Vacuum_ClearanceLegCrossing "Hurdle Crossing" { channel="movavacuum:vacuum:home:vacuum:clearance-leg-crossing" }
+Switch Vacuum_ActiveSuspensionCrossing "Active Suspension Crossing" { channel="movavacuum:vacuum:home:vacuum:active-suspension-crossing" }
+Switch Vacuum_LiftChassisOnCarpet "Lift Chassis on Carpet" { channel="movavacuum:vacuum:home:vacuum:lift-chassis-on-carpet" }
+Switch Vacuum_CloseRollerCoverOnCarpet "Close Roller Cover on Carpet" { channel="movavacuum:vacuum:home:vacuum:close-roller-cover-on-carpet" }
+String Vacuum_AutoEmptyMode "Auto Empty [%s]" { channel="movavacuum:vacuum:home:vacuum:auto-empty-mode" }
+String Vacuum_MopWashLevel "Mop Wash Level [%s]" { channel="movavacuum:vacuum:home:vacuum:mop-wash-level" }
+String Vacuum_ScraperFrequency "Scraper Frequency [%s]" { channel="movavacuum:vacuum:home:vacuum:scraper-frequency" }
+String Vacuum_WaterTemperature "Water Temperature [%s]" { channel="movavacuum:vacuum:home:vacuum:water-temperature" }
+String Vacuum_SelfCleanFrequency "Self-Clean Frequency [%s]" { channel="movavacuum:vacuum:home:vacuum:self-clean-frequency" }
+String Vacuum_MoppingType "Mopping Type [%s]" { channel="movavacuum:vacuum:home:vacuum:mopping-type" }
+Switch Vacuum_DndDisableAutoEmpty "No Auto Empty During Do Not Disturb" { channel="movavacuum:vacuum:home:vacuum:dnd-disable-auto-empty" }
+Switch Vacuum_AutoDrying "Auto Drying" { channel="movavacuum:vacuum:home:vacuum:auto-drying" }
+Switch Vacuum_SmartDrying "Smart Drying" { channel="movavacuum:vacuum:home:vacuum:smart-drying" }
+Switch Vacuum_SilentDrying "Silent Drying" { channel="movavacuum:vacuum:home:vacuum:silent-drying" }
+Switch Vacuum_DustBagDrying "Dust Bag Drying" { channel="movavacuum:vacuum:home:vacuum:dust-bag-drying" }
+Switch Vacuum_SelfClean "Station Self-Cleaning" { channel="movavacuum:vacuum:home:vacuum:self-clean" }
+Switch Vacuum_WaterElectrolysis "Water Electrolysis" { channel="movavacuum:vacuum:home:vacuum:water-electrolysis" }
+Switch Vacuum_MoppingWithDetergent "Mopping With Detergent" { channel="movavacuum:vacuum:home:vacuum:mopping-with-detergent" }
+Switch Vacuum_SmartMopWashing "Smart Mop Washing" { channel="movavacuum:vacuum:home:vacuum:smart-mop-washing" }
+Switch Vacuum_HotWashing "Hot Washing" { channel="movavacuum:vacuum:home:vacuum:hot-washing" }
+Switch Vacuum_UvSterilization "UV Sterilization" { channel="movavacuum:vacuum:home:vacuum:uv-sterilization" }
+Switch Vacuum_UltraCleanMode "Ultra Clean Mode" { channel="movavacuum:vacuum:home:vacuum:ultra-clean-mode" }
+String Vacuum_CleaningMode "Cleaning Mode [%s]" { channel="movavacuum:vacuum:home:vacuum:cleaning-mode" }
+Number Vacuum_WaterLevel "Mop Water Level (1-32) [%d]" { channel="movavacuum:vacuum:home:vacuum:water-level" }
+String Vacuum_CleanWaterTank "Clean Water Tank [%s]" { channel="movavacuum:vacuum:home:vacuum:clean-water-tank" }
+String Vacuum_DirtyWaterTank "Dirty Water Tank [%s]" { channel="movavacuum:vacuum:home:vacuum:dirty-water-tank" }
+String Vacuum_DustBag "Dust Bag [%s]" { channel="movavacuum:vacuum:home:vacuum:dust-bag" }
+String Vacuum_DetergentStatus "Detergent [%s]" { channel="movavacuum:vacuum:home:vacuum:detergent-status" }
+String Vacuum_BaseStatus "Station Status [%s]" { channel="movavacuum:vacuum:home:vacuum:base-status" }
+String Vacuum_DustBagDryingStatus "Dust Bag Drying [%s]" { channel="movavacuum:vacuum:home:vacuum:dust-bag-drying-status" }
+String Vacuum_DrainageStatus "Draining [%s]" { channel="movavacuum:vacuum:home:vacuum:drainage-status" }
+Number:Dimensionless Vacuum_DryingProgress "Drying Progress [%d %%]" { channel="movavacuum:vacuum:home:vacuum:drying-progress" }
+Switch Vacuum_MopInStation "Mop in Station" { channel="movavacuum:vacuum:home:vacuum:mop-in-station" }
+String Vacuum_BaseCommand "Base Station Command" { channel="movavacuum:vacuum:home:vacuum:base-command" }
+String Vacuum_ResetConsumable "Reset Consumable" { channel="movavacuum:vacuum:home:vacuum:reset-consumable" }
+String Vacuum_Cleangenius "CleanGenius [%s]" { channel="movavacuum:vacuum:home:vacuum:cleangenius" }
+String Vacuum_CleangeniusMode "CleanGenius Mode [%s]" { channel="movavacuum:vacuum:home:vacuum:cleangenius-mode" }
+String Vacuum_RoomInfo "Room Settings" { channel="movavacuum:vacuum:home:vacuum:room-info" }
+Image Vacuum_MapImage "Map" { channel="movavacuum:vacuum:home:vacuum:map-image" }
+String Vacuum_DryingTime "Drying Time [%s]" { channel="movavacuum:vacuum:home:vacuum:drying-time" }
+Switch Vacuum_ChildLock "Child Lock" { channel="movavacuum:vacuum:home:vacuum:child-lock" }
+Switch Vacuum_ResumeCleaning "Resume Cleaning" { channel="movavacuum:vacuum:home:vacuum:resume-cleaning" }
+Switch Vacuum_PetDetection "Pet Detection" { channel="movavacuum:vacuum:home:vacuum:pet-detection" }
+Switch Vacuum_ObstaclePictures "Obstacle Pictures" { channel="movavacuum:vacuum:home:vacuum:obstacle-pictures" }
+Switch Vacuum_FillLight "Fill Light" { channel="movavacuum:vacuum:home:vacuum:fill-light" }
+Switch Vacuum_MopWashingWithDetergent "Mop Washing With Detergent" { channel="movavacuum:vacuum:home:vacuum:mop-washing-with-detergent" }
+Number Vacuum_ChargeLimit "Charge Limit [%d %%]" { channel="movavacuum:vacuum:home:vacuum:charge-limit" }
+Switch Vacuum_OffPeakCharging "Off-Peak Charging" { channel="movavacuum:vacuum:home:vacuum:off-peak-charging" }
+String Vacuum_OffPeakStart "Off-Peak Start [%s]" { channel="movavacuum:vacuum:home:vacuum:off-peak-start" }
+String Vacuum_OffPeakEnd "Off-Peak End [%s]" { channel="movavacuum:vacuum:home:vacuum:off-peak-end" }
+String Vacuum_ErrorText "Error Text [%s]" { channel="movavacuum:vacuum:home:vacuum:error-text" }
+String Vacuum_LastCleaning "Last Cleaning [%s]" { channel="movavacuum:vacuum:home:vacuum:last-cleaning" }
+String Vacuum_CleaningHistory "Cleaning History" { channel="movavacuum:vacuum:home:vacuum:cleaning-history" }
+String Vacuum_RoomSettings "Change Room Settings" { channel="movavacuum:vacuum:home:vacuum:room-settings" }
+String Vacuum_CleanZone "Clean Zones" { channel="movavacuum:vacuum:home:vacuum:clean-zone" }
+String Vacuum_CleanSpot "Clean Spots" { channel="movavacuum:vacuum:home:vacuum:clean-spot" }
+String Vacuum_RoomZones "Room Coordinates [%s]" { channel="movavacuum:vacuum:home:vacuum:room-zones" }
+String Vacuum_RobotPosition "Robot Position [%s]" { channel="movavacuum:vacuum:home:vacuum:robot-position" }
+String Vacuum_GoTo "Go To Point" { channel="movavacuum:vacuum:home:vacuum:go-to" }
+String Vacuum_RemoteControl "Remote Control" { channel="movavacuum:vacuum:home:vacuum:remote-control" }
+String Vacuum_Shortcuts "Shortcuts" { channel="movavacuum:vacuum:home:vacuum:shortcuts" }
+String Vacuum_Shortcut "Shortcut Command" { channel="movavacuum:vacuum:home:vacuum:shortcut" }
+String Vacuum_RoomEdit "Edit Rooms" { channel="movavacuum:vacuum:home:vacuum:room-edit" }
+String Vacuum_CurrentRoom "Current Room [%s]" { channel="movavacuum:vacuum:home:vacuum:current-room" }
+String Vacuum_Obstacles "Detected Obstacles [%s]" { channel="movavacuum:vacuum:home:vacuum:obstacles" }
+String Vacuum_ObstacleIgnore "Ignore Obstacle" { channel="movavacuum:vacuum:home:vacuum:obstacle-ignore" }
+String Vacuum_MapCommand "Map Command" { channel="movavacuum:vacuum:home:vacuum:map-command" }
+String Vacuum_RoomProgress "Room Progress [%s]" { channel="movavacuum:vacuum:home:vacuum:room-progress" }
+String Vacuum_AutoEmptyStatus "Auto Empty Status [%s]" { channel="movavacuum:vacuum:home:vacuum:auto-empty-status" }
+String Vacuum_DustCollection "Dust Collection Possible [%s]" { channel="movavacuum:vacuum:home:vacuum:dust-collection" }
+Image Vacuum_MapImageDark "Map (dark)" { channel="movavacuum:vacuum:home:vacuum:map-image-dark" }
+
+// ---- Room selection helpers (used by movavacuum.rules, not linked to a channel) ----
+// Name the switches Vacuum_Sel_<room number>; the numbers are shown in the "rooms" channel.
+Switch Vacuum_Sel_1 "Living Room"
+Switch Vacuum_Sel_2 "Kitchen"
+Switch Vacuum_Sel_3 "Hallway"
+Number Vacuum_RoomTimes "Repeats [%d]"
+Switch Vacuum_StartRooms "Clean selected rooms"
+Switch Vacuum_ClearRooms "Clear selection"
+
+// ---- Optional: Amazon Alexa (vacuum cleaner device type) ----
+// Not linked to a channel: the rules in movavacuum.rules translate between the Alexa mode and the command channel.
+String Vacuum_AlexaMode "Vacuum" <vacuum> {
+    alexa="VacuumCleaner.Mode" [
+        capabilityNames="@Setting.Mode",
+        supportedModes="CLEAN=@Setting.Clean,DOCK=@Setting.Dock,PAUSE=@Setting.Pause,STOP=@Setting.Stop",
+        actionMappings="Resume=CLEAN,Pause=PAUSE,Stop=STOP,TurnOn=CLEAN,TurnOff=DOCK"
+    ]
+}

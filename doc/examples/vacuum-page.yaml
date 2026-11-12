@@ -1,0 +1,112 @@
+# Example Main UI page (Settings > Pages > + > Layout, then "Code" tab, paste this).
+# The map follows the light/dark theme of the openHAB UI automatically.
+config:
+  label: Vacuum
+  sidebar: true
+blocks:
+  - component: oh-block
+    config: {}
+    slots:
+      default:
+        - component: oh-grid-row
+          config: {}
+          slots:
+            default:
+              - component: oh-grid-col
+                config:
+                  width: "100"
+                  medium: "60"
+                slots:
+                  default:
+                    - component: oh-image-card
+                      config:
+                        title: Map
+                        item: "=themeOptions.dark === 'dark' ? 'Vacuum_MapImageDark' : 'Vacuum_MapImage'"
+                        lazy: false
+              - component: oh-grid-col
+                config:
+                  width: "100"
+                  medium: "40"
+                slots:
+                  default:
+                    - component: oh-label-card
+                      config:
+                        title: State
+                        item: Vacuum_State
+                        icon: oh:vacuum
+                    - component: oh-label-card
+                      config:
+                        title: Battery
+                        item: Vacuum_Battery
+                        icon: oh:battery
+                    - component: oh-list-card
+                      config:
+                        title: Control
+                      slots:
+                        default:
+                          - component: oh-list-item
+                            config:
+                              title: Start
+                              icon: f7:play_fill
+                              action: command
+                              actionItem: Vacuum_Command
+                              actionCommand: start
+                          - component: oh-list-item
+                            config:
+                              title: Pause
+                              icon: f7:pause_fill
+                              action: command
+                              actionItem: Vacuum_Command
+                              actionCommand: pause
+                          - component: oh-list-item
+                            config:
+                              title: Return to dock
+                              icon: f7:house_fill
+                              action: command
+                              actionItem: Vacuum_Command
+                              actionCommand: dock
+                          - component: oh-list-item
+                            config:
+                              title: Locate
+                              icon: f7:location_fill
+                              action: command
+                              actionItem: Vacuum_Command
+                              actionCommand: locate
+                    - component: oh-list-card
+                      config:
+                        title: Rooms
+                      slots:
+                        default:
+                          - component: oh-toggle-item
+                            config:
+                              title: Living Room
+                              item: Vacuum_Sel_1
+                          - component: oh-toggle-item
+                            config:
+                              title: Kitchen
+                              item: Vacuum_Sel_2
+                          - component: oh-toggle-item
+                            config:
+                              title: Hallway
+                              item: Vacuum_Sel_3
+                          - component: oh-stepper-item
+                            config:
+                              title: Repeats
+                              item: Vacuum_RoomTimes
+                              min: 1
+                              max: 3
+                              step: 1
+                          - component: oh-list-item
+                            config:
+                              title: Clean selected rooms
+                              icon: f7:sparkles
+                              action: command
+                              actionItem: Vacuum_StartRooms
+                              actionCommand: "ON"
+                          - component: oh-list-item
+                            config:
+                              title: Clear selection
+                              icon: f7:xmark_circle
+                              action: command
+                              actionItem: Vacuum_ClearRooms
+                              actionCommand: "ON"

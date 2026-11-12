@@ -187,6 +187,8 @@ binding then refuses to switch these on and logs a warning.
 
 ## Full Example
 
+Ready-to-use example files are in [doc/examples](doc/examples): [things](doc/examples/movavacuum.things), [items for all channels](doc/examples/movavacuum.items), [rules](doc/examples/movavacuum.rules) (room selection, Alexa) and a [Main UI page](doc/examples/vacuum-page.yaml) with a map that follows the light/dark theme.
+
 `movavacuum.things`:
 
 ```java

@@ -1,0 +1,8 @@
+// Example things for the Mova/Dreame Vacuum Binding.
+// The device id (did) is written to the openHAB log once the account bridge is online:
+//   Mova/Dreame device found: did=123456789 model=mova.vacuum.r2582a name=...
+// accountType: "mova" (Mova app) or "dreame" (DreameHome app); country: eu, us, cn, sg, ru, kr, by
+
+Bridge movavacuum:account:home "Mova Account" [ username="me@example.com", password="secret", accountType="mova", country="eu" ] {
+    Thing vacuum vacuum "Vacuum" [ did="123456789" ]
+}

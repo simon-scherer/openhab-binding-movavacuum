@@ -1,0 +1,73 @@
+// Example rules for the Mova/Dreame Vacuum Binding (use together with movavacuum.items).
+
+// ---------------------------------------------------------------------------
+// Clean selected rooms
+// Switch Vacuum_Sel_<room number> ON for each room, then Vacuum_StartRooms ON.
+// Cleaning mode, water level and suction are taken from the corresponding channels.
+// ---------------------------------------------------------------------------
+
+rule "Vacuum: clean selected rooms"
+when
+    Item Vacuum_StartRooms received command ON
+then
+    var int times = 1
+    if (Vacuum_RoomTimes.state instanceof Number) {
+        times = (Vacuum_RoomTimes.state as Number).intValue
+    }
+    if (times < 1) { times = 1 }
+    if (times > 3) { times = 3 }
+    var String cmd = ""
+    // add one line per room switch
+    if (Vacuum_Sel_1.state == ON) { cmd = cmd + "1@times=" + times + "," }
+    if (Vacuum_Sel_2.state == ON) { cmd = cmd + "2@times=" + times + "," }
+    if (Vacuum_Sel_3.state == ON) { cmd = cmd + "3@times=" + times + "," }
+    if (cmd == "") {
+        logWarn("movavacuum", "No room selected")
+    } else {
+        // e.g. "1@times=1,3@times=1"
+        Vacuum_CleanRooms.sendCommand(cmd.substring(0, cmd.length - 1))
+    }
+    Vacuum_StartRooms.postUpdate(OFF)
+end
+
+rule "Vacuum: clear room selection"
+when
+    Item Vacuum_ClearRooms received command ON
+then
+    Vacuum_Sel_1.postUpdate(OFF)
+    Vacuum_Sel_2.postUpdate(OFF)
+    Vacuum_Sel_3.postUpdate(OFF)
+    Vacuum_ClearRooms.postUpdate(OFF)
+end
+
+// ---------------------------------------------------------------------------
+// Optional: Amazon Alexa
+// ---------------------------------------------------------------------------
+
+rule "Vacuum: Alexa mode -> command"
+when
+    Item Vacuum_AlexaMode received command
+then
+    switch (receivedCommand.toString) {
+        case "CLEAN": Vacuum_Command.sendCommand("start")
+        case "PAUSE": Vacuum_Command.sendCommand("pause")
+        case "DOCK":  Vacuum_Command.sendCommand("dock")
+        case "STOP":  Vacuum_Command.sendCommand("stop")
+    }
+end
+
+rule "Vacuum: state -> Alexa mode"
+when
+    Item Vacuum_State changed
+then
+    val s = Vacuum_State.state.toString
+    if (s == "sweeping" || s == "mopping" || s == "sweeping_and_mopping" || s == "clean_add_water") {
+        Vacuum_AlexaMode.postUpdate("CLEAN")
+    } else if (s == "paused") {
+        Vacuum_AlexaMode.postUpdate("PAUSE")
+    } else if (s == "returning" || s == "charging" || s == "drying" || s == "washing") {
+        Vacuum_AlexaMode.postUpdate("DOCK")
+    } else {
+        Vacuum_AlexaMode.postUpdate("STOP")
+    }
+end
