@@ -245,6 +245,10 @@ kann den Wert aber ablehnen. Bitte erst testen.
 Mopp-Pad) gibt es bei diesem Modell nicht. Alle Befehle sind experimentell und nur nach Tasshack/dreame-vacuum
 v2.0.1 übernommen; bitte einzeln testen.
 
+## Beispieldateien
+
+Fertige Beispieldateien liegen in [doc/examples](doc/examples): [Things](doc/examples/movavacuum.things), [Items für alle Channels](doc/examples/movavacuum.items), [Regeln](doc/examples/movavacuum.rules) (Raumauswahl, Alexa) und eine [Main-UI-Seite](doc/examples/vacuum-page.yaml), deren Karte dem hellen/dunklen Design folgt.
+
 ## Fehlersuche
 
 Log-Level erhöhen: `log:set DEBUG org.openhab.binding.movavacuum`.
